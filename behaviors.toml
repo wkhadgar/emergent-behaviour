@@ -1,0 +1,57 @@
+[types.red]
+color = [0.95, 0.30, 0.30] # red
+population = 1000
+
+[types.blue]
+color = [0.30, 0.65, 1.00] # blue
+population = 100
+
+[types.green]
+color = [0.35, 0.90, 0.45] # green
+population = 200
+
+[types.yellow]
+color = [0.95, 0.80, 0.20] # yellow
+population = 100
+
+
+[presets.cells]
+description = "type 0 likes type 1, but not itself..."
+matrix = [
+  #red, blue, green, yellow
+  [1.0, -8.0, 1.0, 1.0],   # red
+  [-0.5, 1.0, 1.0, -5.0],  # blue
+  [1.0, 1.0, 5.0, -3.0],   # green
+  [0.5, -1.0, -1.0, 10.0], # yellow
+]
+
+
+[presets.repulsion]
+description = "Everyone repels everyone"
+matrix = [
+  #red, blue, green, yellow
+  [10.0, 8.0, 8.0, 8.0], # red
+  [8.0, 10.0, 8.0, 8.0], # blue
+  [8.0, 8.0, 10.0, 8.0], # green
+  [8.0, 8.0, 8.0, 10.0], # yellow
+]
+
+[presets.clustering]
+description = "Like types attract, unlike repel — produces phase separation"
+matrix = [
+  #red, blue, green, yellow
+  [-14.0, 1.0, 1.0, 1.0], # red
+  [1.0, -14.0, 1.0, 1.0], # blue
+  [1.0, 1.0, -14.0, 1.0], # green
+  [1.0, 1.0, 1.0, -14.0], # yellow
+]
+
+[presets.predator_prey]
+description = "Asymmetric pursuit chain — type 0 chases 1, 1 chases 2, etc."
+matrix = [
+  #red, blue, green, yellow
+  [10.0, -8.0, 4.0, 8.0], # red
+  [8.0, 10.0, -8.0, 4.0], # blue
+  [4.0, 8.0, 10.0, -8.0], # green
+  [-8.0, 4.0, 8.0, 10.0], # yellow
+]
