@@ -55,7 +55,6 @@ Write a @ti.kernel following this template and register it in main.py:
 """
 
 import taichi as ti
-import numpy as np
 
 import config
 import fields
@@ -92,27 +91,21 @@ def _apply_boundary(i: int):
     """
     Reflective boundaries on all four walls.
 
-    On penetration, the position is reflected back and prev_position is
-    corrected so that the implicit velocity reverses along the wall normal,
-    scaled by BOUNCE_RESTITUTION.
+    On penetration, the overshoot is folded back from the wall and
+    prev_position is corrected so the implicit velocity reverses along
+    the wall normal, attenuated by BOUNCE_RESTITUTION.
     """
     for d in ti.static(range(2)):
         if fields.position[i][d] < 0.0:
             fields.position[i][d] = -fields.position[i][d]
-            fields.prev_position[i][d] = (
-                fields.position[i][d]
-                + (fields.position[i][d] - fields.prev_position[i][d])
-                * config.BOUNCE_RESTITUTION
+            fields.prev_position[i][d] = fields.position[i][d] + ti.abs(
+                fields.position[i][d] - fields.prev_position[i][d]
             )
 
         if fields.position[i][d] > 1.0:
-            fields.position[i][d] = (
-                2.0 - fields.position[i][d] * config.BOUNCE_RESTITUTION
-            )
-            fields.prev_position[i][d] = (
-                fields.position[i][d]
-                + (fields.position[i][d] - fields.prev_position[i][d])
-                * config.BOUNCE_RESTITUTION
+            fields.position[i][d] = 2.0 - fields.position[i][d]
+            fields.prev_position[i][d] = fields.position[i][d] + ti.abs(
+                fields.position[i][d] - fields.prev_position[i][d]
             )
 
 
@@ -176,7 +169,22 @@ def _accumulate_forces():
 
                                 # diff / dist gives the unit direction from j to i
                                 # (repulsive when coefficient is positive).
-                                force += coefficient * (falloff**2) * diff / dist
+                                force += coefficient * falloff * diff / dist
+
+                            # Overlap resistance — applied independently of type, only at very close range.
+                            # Uses a stiffer quadratic kernel over PARTICLE_DIAMETER rather than
+                            # INTERACTION_RADIUS, producing a hard-ish core without requiring a
+                            # constraint solver.
+                            if dist < config.PARTICLE_OVERLAP_DIAMETER:
+                                overlap_falloff = (
+                                    1.0 - dist / config.PARTICLE_OVERLAP_DIAMETER
+                                ) ** 2
+                                force += (
+                                    config.OVERLAP_REPULSION
+                                    * overlap_falloff
+                                    * diff
+                                    / dist
+                                )
 
         _accumulated_force[i] = force
 

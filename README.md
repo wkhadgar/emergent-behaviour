@@ -1,29 +1,20 @@
 # Emergent Behaviours
 
 A real-time large-scale particle simulation platform for studying emergent
-behaviour arising from typed local interaction rules. The system supports
-10 000+ particles at interactive frame rates across multiple particle types,
-each governed by a configurable pairwise interaction matrix.
+behaviour arising from typed local interaction rules. Heterogeneous particle
+populations interact through a configurable pairwise force matrix, producing
+collective phenomena — clustering, phase separation, pursuit dynamics,
+self-organisation — from purely local rules with no global coordination.
 
----
-
-## Motivation
-
-Complex collective behaviour — clustering, phase separation, pursuit patterns,
-self-organisation — can emerge from populations of particles following simple
-local rules with no global coordination. This simulator provides a controlled
-environment to observe, tune, and record such phenomena at a scale where
-statistical structure becomes visible. The multi-type interaction model is
-based on the Particle Life framework (Ventrella, 2017).
+The interaction model is based on the Particle Life framework (Ventrella, 2017).
 
 ---
 
 ## Requirements
 
 - Python 3.11+
-- A CUDA, Metal, or Vulkan-capable GPU (CPU fallback available — reduce
-  `PARTICLE_COUNT` to ≤ 50 000 in `config.py` and set `arch=ti.cpu` in
-  `main.py`)
+- A CUDA, Metal, or Vulkan-capable GPU (for CPU fallback, reduce populations
+  in `behaviors.toml` and set `arch=ti.cpu` in `main.py`)
 
 ```bash
 pip install -r requirements.txt
@@ -34,21 +25,21 @@ python main.py
 
 ## Controls
 
-| Key     | Action                                      |
-|---------|---------------------------------------------|
-| `TAB`   | Cycle to next interaction preset            |
-| `SPACE` | Reset particle positions and velocities     |
-| `G`     | Toggle interaction forces (gravity only)    |
-| `S`     | Save screenshot to `screenshots/`           |
-| `ESC`   | Quit                                        |
+| Key     | Action                                   |
+|---------|------------------------------------------|
+| `TAB`   | Cycle to next interaction preset         |
+| `SPACE` | Reset particle positions and velocities  |
+| `S`     | Save screenshot to `screenshots/`        |
+| `ESC`   | Quit                                     |
 
 ---
 
 ## Project layout
 
 ```
-particle_simulator/
-├── config.py       — parameters and interaction presets
+emergent-behaviour/
+├── behaviors.toml  — particle types, populations, and interaction presets
+├── config.py       — simulation parameters (timestep, damping, grid, etc.)
 ├── fields.py       — GPU memory layout and population helpers
 ├── grid.py         — spatial hash: construction and neighbourhood iteration
 ├── behaviors.py    — integration scheme and force kernels
@@ -59,16 +50,39 @@ particle_simulator/
 Module dependencies are strictly one-directional:
 
 ```
-config → fields → grid → behaviors → renderer → main
+behaviors.toml → config → fields → grid → behaviors → renderer → main
 ```
 
 ---
 
-## Interaction matrix
+## Configuring types and interactions
 
-Each preset defines an `N_TYPES × N_TYPES` matrix. Entry `[i, j]` is the
-force coefficient applied to a particle of type `i` when it encounters a
-particle of type `j` within `INTERACTION_RADIUS`:
+All particle definitions and interaction rules live in `behaviors.toml`.
+No source file needs to be modified to add, remove, or retune a type or preset.
+
+### Defining types
+
+Each type is a named section under `[types]` with a colour and a population:
+
+```toml
+[types.red]
+color      = [0.95, 0.30, 0.30]
+population = 1000
+
+[types.blue]
+color      = [0.30, 0.65, 1.00]
+population = 100
+```
+
+Type names are arbitrary. Declaration order determines the type index used
+in the interaction matrix and GPU fields.
+
+### Interaction presets
+
+Each preset is a named section under `[presets]` with a description and an
+`N × N` matrix, where `N` is the number of declared types. Row `i` and
+column `j` give the force coefficient applied to a particle of type `i` when
+it encounters a particle of type `j` within `INTERACTION_RADIUS`:
 
 ```
 positive → repulsion
@@ -76,25 +90,47 @@ negative → attraction
 zero     → no interaction
 ```
 
-Presets are defined in `config.py` under `INTERACTION_PRESETS`. New presets
-can be added there without modifying any other file. The active preset is
-cycled at runtime with `TAB` and can be changed mid-simulation without
-resetting particle positions.
+Column and row comments are encouraged for readability:
+
+```toml
+[presets.predator_prey]
+description = "Asymmetric pursuit chain — type 0 chases 1, 1 chases 2, etc."
+matrix = [
+  #red,   blue,  green, yellow
+  [ 10.0,  -8.0,   4.0,   8.0],  # red
+  [  8.0,  10.0,  -8.0,   4.0],  # blue
+  [  4.0,   8.0,  10.0,  -8.0],  # green
+  [ -8.0,   4.0,   8.0,  10.0],  # yellow
+]
+```
+
+Presets are cycled at runtime with `TAB` without resetting particle positions,
+allowing live comparison between interaction regimes.
+
+### Overlap resistance
+
+Independent of the interaction matrix, all particle pairs closer than
+`PARTICLE_OVERLAP_DIAMETER` experience a stiff quadratic repulsion. This
+prevents particles from collapsing into singularities under strong attraction.
+Its stiffness is configured in `config.py` as it is a numerical stability
+concern rather than a behavioural one.
 
 ---
 
-## Parameters
+## Simulation parameters
 
-All parameters are in `config.py` with inline documentation.
+Physics and rendering parameters are in `config.py` with inline documentation.
 
-| Constant              | Default   | Effect                                 |
-|-----------------------|-----------|----------------------------------------|
-| `PARTICLE_COUNT`      | 300 000   | Simulation scale                       |
-| `N_TYPES`             | 4         | Number of distinct particle types      |
-| `DT`                  | 5e-4      | Integration timestep                   |
-| `SUBSTEPS`            | 6         | Physics iterations per rendered frame  |
-| `DAMPING`             | 0.985     | Viscous drag coefficient               |
-| `INTERACTION_RADIUS`  | 0.025     | Neighbourhood radius and cell size     |
+| Constant                   | Effect                                          |
+|----------------------------|-------------------------------------------------|
+| `DT`                       | Integration timestep                            |
+| `SUBSTEPS`                 | Physics iterations per rendered frame           |
+| `DAMPING`                  | Viscous drag coefficient                        |
+| `INTERACTION_RADIUS`       | Neighbourhood radius and spatial hash cell size |
+| `MAX_PARTICLES_PER_CELL`   | Overflow cap for dense local clusters           |
+| `PARTICLE_RADIUS`          | Rendered particle size                          |
+| `PARTICLE_OVERLAP_DIAMETER`| Minimum separation before overlap resistance    |
+| `OVERLAP_REPULSION`        | Stiffness of the overlap resistance force       |
 
 ---
 
@@ -102,7 +138,7 @@ All parameters are in `config.py` with inline documentation.
 
 Störmer–Verlet integration throughout. Velocity is stored implicitly as
 `(position - prev_position)`, providing second-order accuracy and symplectic
-energy behaviour. See `behaviors.py` for the derivation and boundary
+energy behaviour. See `behaviors.py` for the full derivation and boundary
 correction.
 
 ---
@@ -111,20 +147,8 @@ correction.
 
 Uniform grid hash with cell size equal to `INTERACTION_RADIUS`. Three-pass
 counting sort (count → prefix sum → fill), O(N) per frame. The prefix sum
-pass runs on CPU over ~1600 cells; see `grid.py` for implementation details
-and the Ihmsen et al. (2011) reference.
-
----
-
-## Adding a behaviour
-
-1. Write a physics kernel in `behaviors.py` following the template in that
-   file's module docstring.
-2. Expose it through the `step()` function or add a dedicated entry point.
-3. Register a keypress in `main.py`.
-
-Document the physical model each behaviour approximates and cite relevant
-literature where applicable.
+pass runs on CPU — see `grid.py` for implementation details and the
+Ihmsen et al. (2011) reference.
 
 ---
 

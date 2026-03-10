@@ -8,21 +8,21 @@ population = 100
 
 [types.green]
 color = [0.35, 0.90, 0.45] # green
-population = 2
+population = 200
 
 [types.yellow]
 color = [0.95, 0.80, 0.20] # yellow
-population = 1
+population = 100
 
 
 [presets.cells]
 description = "type 0 likes type 1, but not itself..."
 matrix = [
   #red, blue, green, yellow
-  [1.0, -5.0, 1.0, 1.0],  # red
-  [0.5, 5.0, 1.0, 1.0],   # blue
-  [1.0, 1.0, 5.0, -3.0],  # green
-  [1.0, 1.0, -1.0, 10.0], # yellow
+  [1.0, -8.0, 1.0, 1.0],   # red
+  [-0.5, 1.0, 1.0, -5.0],  # blue
+  [1.0, 1.0, 5.0, -3.0],   # green
+  [0.5, -1.0, -1.0, 10.0], # yellow
 ]
 
 

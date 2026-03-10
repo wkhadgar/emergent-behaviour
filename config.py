@@ -1,10 +1,6 @@
 # Copyright (c) 2026
 #
 # SPDX-License-Identifier: BSD-3-Clause
-
-import tomllib as toml
-import numpy as np
-
 """
 Simulation-wide constants and interaction presets.
 
@@ -20,6 +16,10 @@ type i when it encounters a particle of type j within INTERACTION_RADIUS.
     Zero                 → no interaction
 """
 
+import tomllib as toml
+import numpy as np
+
+
 # Timestep for Störmer–Verlet integration. Reducing this improves stability
 # at the cost of requiring more sub-steps to maintain simulation speed.
 DT: float = 5e-4
@@ -31,9 +31,6 @@ SUBSTEPS: int = 6
 # Viscous drag coefficient applied each integration step.
 # 1.0 = energy conserved, values below 1.0 dissipate kinetic energy.
 DAMPING: float = 0.985
-
-# Coefficient of restitution on boundary collision.
-BOUNCE_RESTITUTION: float = 0.5
 
 # Neighbourhood radius. Grid cell size equals this value, ensuring all
 # neighbour candidates reside within the 3×3 cell neighbourhood.
@@ -73,5 +70,7 @@ WINDOW_WIDTH: int = 980
 WINDOW_HEIGHT: int = 980
 
 PARTICLE_RADIUS: float = 0.0009
+PARTICLE_OVERLAP_DIAMETER: float = PARTICLE_RADIUS * 10
+OVERLAP_REPULSION: float = 200.0
 
 BACKGROUND_COLOR: tuple[float, float, float] = (0.04, 0.04, 0.08)

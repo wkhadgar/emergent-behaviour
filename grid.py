@@ -32,9 +32,6 @@ import config
 import fields
 
 
-# ── Cell coordinate helpers ───────────────────────────────────────────────────
-
-
 @ti.func
 def position_to_cell(pos: ti.template()) -> ti.Vector:
     """Map a normalised position to integer (cx, cy) grid coordinates."""
@@ -53,9 +50,6 @@ def position_to_cell(pos: ti.template()) -> ti.Vector:
 def cell_to_index(cx: int, cy: int) -> int:
     """Flatten 2D cell coordinates to a 1D index."""
     return cx + cy * config.GRID_W
-
-
-# ── Construction passes ───────────────────────────────────────────────────────
 
 
 @ti.kernel
@@ -119,9 +113,6 @@ def rebuild():
     _fill_sorted_indices()
 
 
-# ── Neighbourhood iteration ───────────────────────────────────────────────────
-
-
 @ti.func
 def iterate_neighbours(i: int, func: ti.template()):
     """
@@ -157,4 +148,3 @@ def iterate_neighbours(i: int, func: ti.template()):
 
                     if j != i:
                         func(i, j)
-
