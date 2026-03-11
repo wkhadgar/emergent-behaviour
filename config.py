@@ -30,30 +30,30 @@ SUBSTEPS: int = 6
 
 # Viscous drag coefficient applied each integration step.
 # 1.0 = energy conserved, values below 1.0 dissipate kinetic energy.
-DAMPING: float = 0.985
-
-# Neighbourhood radius. Grid cell size equals this value, ensuring all
-# neighbour candidates reside within the 3×3 cell neighbourhood.
-INTERACTION_RADIUS: float = 0.025 * 3
-
-GRID_W: int = int(1.0 / INTERACTION_RADIUS)
-GRID_H: int = int(1.0 / INTERACTION_RADIUS)
-GRID_SIZE: int = GRID_W * GRID_H
+DAMPING: float = 0.97
 
 # Hard cap on particles per cell. Particles beyond this are excluded from
 # neighbourhood queries for that cell. Raise if dense clusters artifact.
 MAX_PARTICLES_PER_CELL: int = 512
 
 with open("behaviors.toml", mode="rb") as toml_file:
-    config = toml.load(toml_file)
-    type_config = config["types"]
-    presets = config["presets"]
+    loaded_toml = toml.load(toml_file)
+    type_config = loaded_toml["types"]
+    presets = loaded_toml["presets"]
+    config = loaded_toml["config"]
+    separation = config["separation"]
+    interaction = config["interaction"]
 
 PARTICLE_COUNT: list[int] = [type_config[ptype]["population"] for ptype in type_config]
 TYPE_COLORS: list[tuple[float, float, float]] = [
     type_config[ptype]["color"] for ptype in type_config
 ]
 N_TYPES: int = len(PARTICLE_COUNT)
+
+PARTICLE_RADIUS: float = config["size"] / 2
+PARTICLE_OVERLAP_DIAMETER: float = separation["size"]
+OVERLAP_REPULSION: float = separation["coefficient"]
+INTERACTION_RADIUS: float = config["interaction"]
 
 PARTICLE_COUNT_CUMSUM = np.cumsum(PARTICLE_COUNT)
 ALL_PARTICLES_COUNT = np.sum(PARTICLE_COUNT)
@@ -69,8 +69,9 @@ WINDOW_TITLE: str = "Emergent Behaviours"
 WINDOW_WIDTH: int = 980
 WINDOW_HEIGHT: int = 980
 
-PARTICLE_RADIUS: float = 0.0009
-PARTICLE_OVERLAP_DIAMETER: float = PARTICLE_RADIUS * 10
-OVERLAP_REPULSION: float = 200.0
+
+GRID_W: int = int(1.0 / INTERACTION_RADIUS)
+GRID_H: int = int(1.0 / INTERACTION_RADIUS)
+GRID_SIZE: int = GRID_W * GRID_H
 
 BACKGROUND_COLOR: tuple[float, float, float] = (0.04, 0.04, 0.08)

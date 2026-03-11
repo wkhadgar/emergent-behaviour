@@ -24,7 +24,7 @@ changes per substep at DT=5e-4 are well below one cell width (INTERACTION_RADIUS
 import taichi as ti
 
 # ti.init() must precede all project imports.
-ti.init(arch=ti.gpu)
+ti.init(arch=ti.cpu)
 
 import behaviors  # noqa: E402
 import config  # noqa: E402

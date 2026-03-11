@@ -1,57 +1,65 @@
+[config]
+size = 0.0015
+interaction = 0.025
+
+[config.separation]
+coefficient = 5000
+size = 0.004
+
 [types.red]
 color = [0.95, 0.30, 0.30] # red
-population = 1000
+population = 5000
 
 [types.blue]
 color = [0.30, 0.65, 1.00] # blue
-population = 100
+population = 5000
 
 [types.green]
 color = [0.35, 0.90, 0.45] # green
-population = 200
+population = 5000
 
 [types.yellow]
 color = [0.95, 0.80, 0.20] # yellow
-population = 100
+population = 5000
 
 
 [presets.cells]
-description = "type 0 likes type 1, but not itself..."
+description = "Organic like structures..."
 matrix = [
   #red, blue, green, yellow
-  [1.0, -8.0, 1.0, 1.0],   # red
-  [-0.5, 1.0, 1.0, -5.0],  # blue
-  [1.0, 1.0, 5.0, -3.0],   # green
-  [0.5, -1.0, -1.0, 10.0], # yellow
+  [-5.0, -10.0, 1.0, 1.0],  # red
+  [10.0, -5.0, 1.0, -4.0],  # blue
+  [1.0, 1.0, 5.0, -3.0],    # green
+  [0.5, 10.0, -1.0, -10.0], # yellow
 ]
 
 
-[presets.repulsion]
-description = "Everyone repels everyone"
+[presets.overtrust]
+description = "Everyone likes everyone, except equals"
 matrix = [
   #red, blue, green, yellow
-  [10.0, 8.0, 8.0, 8.0], # red
-  [8.0, 10.0, 8.0, 8.0], # blue
-  [8.0, 8.0, 10.0, 8.0], # green
-  [8.0, 8.0, 8.0, 10.0], # yellow
+  [14.0, -4.0, -4.0, -4.0], # red
+  [-4.0, 14.0, -4.0, -4.0], # blue
+  [-4.0, -4.0, 14.0, -4.0], # green
+  [-4.0, -4.0, -4.0, 14.0], # yellow
 ]
 
-[presets.clustering]
-description = "Like types attract, unlike repel — produces phase separation"
+[presets.distrust]
+description = "Everyone dislikes everyone, except equals"
 matrix = [
   #red, blue, green, yellow
-  [-14.0, 1.0, 1.0, 1.0], # red
-  [1.0, -14.0, 1.0, 1.0], # blue
-  [1.0, 1.0, -14.0, 1.0], # green
-  [1.0, 1.0, 1.0, -14.0], # yellow
+  [-14.0, 4.0, 4.0, 4.0], # red
+  [4.0, -14.0, 4.0, 4.0], # blue
+  [4.0, 4.0, -14.0, 4.0], # green
+  [4.0, 4.0, 4.0, -14.0], # yellow
 ]
 
-[presets.predator_prey]
-description = "Asymmetric pursuit chain — type 0 chases 1, 1 chases 2, etc."
+[presets.blobs]
+description = "Larger groups with pursuit behaviour."
 matrix = [
   #red, blue, green, yellow
-  [10.0, -8.0, 4.0, 8.0], # red
-  [8.0, 10.0, -8.0, 4.0], # blue
-  [4.0, 8.0, 10.0, -8.0], # green
-  [-8.0, 4.0, 8.0, 10.0], # yellow
+  [-14.0, 14.0, 6.0, 0.0],   # red
+  [-14.0, 3.0, -10.0, 10.0], # blue
+  [4.0, -4.0, 0.0, 7.0],     # green
+  [6.0, -11.0, 8.0, -10.0],  # yellow
 ]
