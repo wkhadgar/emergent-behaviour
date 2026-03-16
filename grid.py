@@ -34,14 +34,19 @@ import fields
 
 @ti.func
 def position_to_cell(pos: ti.template()) -> ti.Vector:
-    """Map a normalised position to integer (cx, cy) grid coordinates."""
+    """
+    Map a normalised position to integer (cx, cy) grid coordinates.
+
+    The y axis is scaled by ASPECT_RATIO so that grid cells remain square
+    in screen space despite the domain being mapped to a non-square window.
+    """
     cx = int(pos.x * config.GRID_W)
     cy = int(pos.y * config.GRID_H)
 
-    # Clamp to valid range. Particles exactly at 1.0 would otherwise address
-    # one cell past the last column or row.
-    cx = ti.min(ti.max(cx, 0), config.GRID_W - 1)
-    cy = ti.min(ti.max(cy, 0), config.GRID_H - 1)
+    # Clamp to valid range. Particles exactly at 1.0 / ASPECT_RATIO on y
+    # would otherwise address one cell past the last row.
+    cx = ti.math.clamp(cx, 0, config.GRID_W - 1)
+    cy = ti.math.clamp(cy, 0, config.GRID_H - 1)
 
     return ti.Vector([cx, cy])
 
@@ -94,11 +99,7 @@ def _fill_sorted_indices():
 
         slot = ti.atomic_add(fields.cell_cursor[c], 1)
 
-        # Guard against cell overflow. Excess particles are excluded from
-        # neighbourhood queries for that cell only — visible only at extreme
-        # local densities exceeding MAX_PARTICLES_PER_CELL.
-        if slot < fields.cell_start[c] + config.MAX_PARTICLES_PER_CELL:
-            fields.sorted_indices[slot] = i
+        fields.sorted_indices[slot] = i
 
 
 def rebuild():
@@ -141,9 +142,7 @@ def iterate_neighbours(i: int, func: ti.template()):
                 start = fields.cell_start[c]
                 count = fields.cell_count[c]
 
-                for k in range(
-                    start, start + ti.min(count, config.MAX_PARTICLES_PER_CELL)
-                ):
+                for k in range(start, start + count):
                     j = fields.sorted_indices[k]
 
                     if j != i:

@@ -1,65 +1,89 @@
 [config]
-size = 0.0015
-interaction = 0.025
+size = 0.20                 # % of screen
+interaction = 8.0           # % of screen
+separation_intensity = 8000 # Intensity of separation forces between particles
 
-[config.separation]
-coefficient = 5000
-size = 0.004
+[config.environment]
+color = [0.04, 0.04, 0.08] # black
+damping = 2                # % of energy lost to the environment every simulation step
 
 [types.red]
 color = [0.95, 0.30, 0.30] # red
-population = 5000
+population = 4000
+density_regulation = true
 
 [types.blue]
 color = [0.30, 0.65, 1.00] # blue
-population = 5000
+population = 4000
+density_regulation = true
 
 [types.green]
 color = [0.35, 0.90, 0.45] # green
-population = 5000
+population = 4000
+density_regulation = true
 
 [types.yellow]
 color = [0.95, 0.80, 0.20] # yellow
-population = 5000
+population = 4000
+density_regulation = true
 
 
-[presets.cells]
-description = "Organic like structures..."
+[presets.blobs]
+description = "Larger groups with pursuit behaviour."
 matrix = [
-  #red, blue, green, yellow
-  [-5.0, -10.0, 1.0, 1.0],  # red
-  [10.0, -5.0, 1.0, -4.0],  # blue
-  [1.0, 1.0, 5.0, -3.0],    # green
-  [0.5, 10.0, -1.0, -10.0], # yellow
+  #red,   blue,  green, yellow
+  [5.0, 12.0, -1.0, -1.0],  # red
+  [-10.0, 5.0, -1.0, 4.0],  # blue
+  [-1.0, -1.0, -5.0, 3.0],  # green
+  [-0.5, -10.0, 1.0, 10.0], # yellow
 ]
-
 
 [presets.overtrust]
-description = "Everyone likes everyone, except equals"
+description = "Everyone trusts everyone, except equals"
 matrix = [
-  #red, blue, green, yellow
-  [14.0, -4.0, -4.0, -4.0], # red
-  [-4.0, 14.0, -4.0, -4.0], # blue
-  [-4.0, -4.0, 14.0, -4.0], # green
-  [-4.0, -4.0, -4.0, 14.0], # yellow
-]
-
-[presets.distrust]
-description = "Everyone dislikes everyone, except equals"
-matrix = [
-  #red, blue, green, yellow
+  #red,   blue,  green, yellow
   [-14.0, 4.0, 4.0, 4.0], # red
   [4.0, -14.0, 4.0, 4.0], # blue
   [4.0, 4.0, -14.0, 4.0], # green
   [4.0, 4.0, 4.0, -14.0], # yellow
 ]
 
-[presets.blobs]
-description = "Larger groups with pursuit behaviour."
+[presets.distrust]
+description = "Everyone distrusts everyone, except equals"
 matrix = [
-  #red, blue, green, yellow
-  [-14.0, 14.0, 6.0, 0.0],   # red
-  [-14.0, 3.0, -10.0, 10.0], # blue
-  [4.0, -4.0, 0.0, 7.0],     # green
-  [6.0, -11.0, 8.0, -10.0],  # yellow
+  #red,   blue,  green, yellow
+  [14.0, -4.0, -4.0, -4.0], # red
+  [-4.0, 14.0, -4.0, -4.0], # blue
+  [-4.0, -4.0, 14.0, -4.0], # green
+  [-4.0, -4.0, -4.0, 14.0], # yellow
+]
+
+[presets.cells]
+description = "Organic like structures..."
+matrix = [
+  #red,   blue,  green, yellow
+  [10.0, -14.0, -6.0, -1.0], # red
+  [14.0, -3.0, 10.0, -10.0], # blue
+  [-4.0, 4.0, 0.0, -7.0],    # green
+  [-6.0, 11.0, -8.0, 1.0],   # yellow
+]
+
+[presets.wip]
+description = "In definition..."
+matrix = [
+  #red,   blue,  green, yellow
+  [4.0, -1.0, -4.0, 14.0], # red
+  [-8.0, 4.0, 0.0, 4.0],   # blue
+  [0.0, 0.0, 0.0, 0.0],    # green  (inert)
+  [-5.0, 14.0, 0.0, 8.0],  # yellow
+]
+
+[presets.cell_competition]
+description = "Shell-nucleus cells competing for food"
+matrix = [
+  #red,   blue,  green, yellow
+  [4.0, 13.0, 10.0, 2.0],  # red    (A nucleus)
+  [0.0, 4.0, 1.0, 0.0],    # blue   (A shell)
+  [-2.0, -2.0, 2.0, -2.0], # green  (food)
+  [2.0, 0.0, 10.0, 4.0],   # yellow (B nucleus)
 ]

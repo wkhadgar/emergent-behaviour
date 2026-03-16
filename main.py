@@ -13,18 +13,19 @@ Frame structure per tick:
 
     1. grid.rebuild()           — reconstruct spatial hash from current positions
     2. substep loop             — run behaviors.step() SUBSTEPS times
-    3. renderer.draw()          — composite and present frame
+    3. renderer.draw_gui()      — draw control panel, returns dirty flag
+    4. renderer.draw()          — composite particles and present frame
+    5. flush if dirty           — push changed matrix / regulation to GPU fields
 
-The spatial hash is rebuilt once per frame rather than per substep. This is
-valid because the hash is consumed during force accumulation only; positional
-changes per substep at DT=5e-4 are well below one cell width (INTERACTION_RADIUS
-= 0.025), so the stale hash introduces negligible error.
+GUI state (matrix values, regulation flags) is owned by the Renderer and
+flushed to GPU fields only when draw_gui() reports a change. This avoids
+unnecessary GPU uploads on frames where nothing changed.
 """
 
 import taichi as ti
 
 # ti.init() must precede all project imports.
-ti.init(arch=ti.cpu)
+ti.init(arch=ti.gpu)
 
 import behaviors  # noqa: E402
 import config  # noqa: E402
@@ -33,47 +34,61 @@ import grid  # noqa: E402
 import renderer as renderer_module  # noqa: E402
 
 
-_PRESET_NAMES = list(config.INTERACTION_PRESETS.keys())
-
 _KEY_BINDINGS = """
 controls
 ────────
   SPACE        reset particles
   TAB          cycle interaction preset
+  UP / DOWN    nudge selected matrix cell
   S            save screenshot
   ESC          quit
 """
 
 
-def _reset(renderer: renderer_module.Renderer, preset_name: str):
+def _reset(renderer: renderer_module.Renderer):
     behaviors.init_particles()
     fields.populate_type_colors()
-    fields.populate_interaction_matrix(preset_name)
+    fields.populate_interaction_matrix(renderer.matrix)
+    behaviors.upload_density_regulation(renderer.density_regulation)
     renderer.on_particles_reset()
+
+
+def _flush_gui_changes(renderer: renderer_module.Renderer):
+    """Push current GUI state to GPU fields."""
+    fields.populate_interaction_matrix(renderer.matrix)
+    behaviors.upload_density_regulation(renderer.density_regulation)
 
 
 def main():
     renderer = renderer_module.Renderer()
-
+    preset_names = list(config.INTERACTION_PRESETS.keys())
     preset_index = 0
 
-    _reset(renderer, _PRESET_NAMES[preset_index])
+    _reset(renderer)
 
     print(_KEY_BINDINGS)
-    print(f"preset → {_PRESET_NAMES[preset_index]}")
+    print(f"preset → {preset_names[preset_index]}")
 
     while renderer.running:
         event = renderer.poll_event()
         while event is not None:
             match event.key:
                 case " ":
-                    _reset(renderer, _PRESET_NAMES[preset_index])
+                    _reset(renderer)
                     print("particles reset")
 
                 case ti.ui.TAB:
-                    preset_index = (preset_index + 1) % len(_PRESET_NAMES)
-                    fields.populate_interaction_matrix(_PRESET_NAMES[preset_index])
-                    print(f"preset → {_PRESET_NAMES[preset_index]}")
+                    preset_index = (preset_index + 1) % len(preset_names)
+                    preset = preset_names[preset_index]
+                    renderer.matrix = list(
+                        map(float, config.INTERACTION_PRESETS[preset])
+                    )
+                    _flush_gui_changes(renderer)
+                    print(f"preset → {preset}")
+
+                case ti.ui.UP | ti.ui.DOWN:
+                    if renderer.handle_arrow_nudge(event.key):
+                        fields.populate_interaction_matrix(renderer.matrix)
 
                 case "s":
                     renderer.save_screenshot()
@@ -87,6 +102,11 @@ def main():
 
         for _ in range(config.SUBSTEPS):
             behaviors.step()
+
+        dirty = renderer.draw_gui()
+
+        if dirty:
+            _flush_gui_changes(renderer)
 
         renderer.draw()
 
