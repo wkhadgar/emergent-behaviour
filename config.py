@@ -24,11 +24,11 @@ from numpy.__config__ import CONFIG
 
 # Timestep for Störmer–Verlet integration. Reducing this improves stability
 # at the cost of requiring more sub-steps to maintain simulation speed.
-DT: float = 5e-4
+DT: float = 1e-4
 
 # Sub-steps executed per rendered frame. More sub-steps improve stability at
 # high velocities but increase GPU time proportionally.
-SUBSTEPS: int = 3
+SUBSTEPS: int = 2
 
 with open("behaviors.toml", mode="rb") as _toml_file:
     _loaded = toml.load(_toml_file)
@@ -89,4 +89,3 @@ ASPECT_RATIO: float = WINDOW_HEIGHT / WINDOW_WIDTH
 GRID_W: int = int(1.0 / INTERACTION_RADIUS)
 GRID_H: int = int(1.0 / INTERACTION_RADIUS)
 GRID_SIZE: int = GRID_W * GRID_H
-

@@ -187,7 +187,7 @@ def _neighbourhood_entropy(type_counts: ti.template(), total: int) -> float:
         # Normalise by maximum possible entropy log(N_TYPES).
         H = H / ti.math.log(float(config.N_TYPES))
 
-    return H - 0.05
+    return H
 
 
 @ti.kernel
@@ -211,6 +211,9 @@ def _accumulate_forces():
     """
     for i in fields.position:
         _accumulated_force[i] = ti.Vector([0.0, 0.0])
+
+    FALLOFF_COEF = 2 / (config.INTERACTION_RADIUS - config.PARTICLE_OVERLAP_DIAMETER)
+    FALLOFF_OFFSET = (config.INTERACTION_RADIUS + config.PARTICLE_OVERLAP_DIAMETER) / 2
 
     for i in fields.position:
         force = ti.Vector([0.0, 0.0])
@@ -250,7 +253,6 @@ def _accumulate_forces():
 
                             if dist < config.INTERACTION_RADIUS:
                                 type_j = fields.particle_type[j]
-                                falloff = 1.0 - dist / config.INTERACTION_RADIUS
                                 coefficient = -fields.interaction_matrix[
                                     type_i * config.N_TYPES + type_j
                                 ]
@@ -258,6 +260,9 @@ def _accumulate_forces():
                                 type_counts[type_j] += 1
                                 total_neighbours += 1
 
+                                falloff = max(
+                                    1.0 - abs(FALLOFF_COEF * (dist - FALLOFF_OFFSET)), 0
+                                )
                                 if type_j == type_i:
                                     # Held separately; entropy weight applied
                                     # after the full neighbourhood scan.
@@ -269,7 +274,8 @@ def _accumulate_forces():
                             if dist < config.PARTICLE_OVERLAP_DIAMETER:
                                 overlap_falloff = (
                                     1.0 - dist / config.PARTICLE_OVERLAP_DIAMETER
-                                )
+                                ) ** 0.5
+
                                 force += (
                                     config.OVERLAP_REPULSION
                                     * overlap_falloff

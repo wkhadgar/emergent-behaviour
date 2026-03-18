@@ -1,7 +1,7 @@
 [config]
-size = 0.20                 # % of screen
-interaction = 8.0           # % of screen
-separation_intensity = 8000 # Intensity of separation forces between particles
+size = 0.15                 # % of screen
+interaction = 10.0          # % of screen
+separation_intensity = 2000 # Intensity of separation forces between particles
 
 [config.environment]
 color = [0.04, 0.04, 0.08] # black
@@ -72,10 +72,10 @@ matrix = [
 description = "In definition..."
 matrix = [
   #red,   blue,  green, yellow
-  [4.0, -1.0, -4.0, 14.0], # red
-  [-8.0, 4.0, 0.0, 4.0],   # blue
-  [0.0, 0.0, 0.0, 0.0],    # green  (inert)
-  [-5.0, 14.0, 0.0, 8.0],  # yellow
+  [4.0, 2.0, 0.0, 0.0], # red
+  [0.0, 4.0, 2.0, 0.0], # blue
+  [0.0, 0.0, 4.0, 2.0], # green
+  [2.0, 0.0, 0.0, 4.0], # yellow
 ]
 
 [presets.cell_competition]
